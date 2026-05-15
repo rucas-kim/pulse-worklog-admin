@@ -5,6 +5,7 @@ import { parseSections } from "@/lib/sections";
 import { Folder, FOLDERS } from "@/lib/types";
 import { SectionList } from "@/components/SectionList";
 import { CategoryBadge, StatusBadge } from "@/components/Badge";
+import { PostEditor } from "@/components/PostEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,8 @@ export default async function PostPage({
           )}
         </div>
       </header>
+
+      <PostEditor folder={folder} slug={slug} initialBody={post.body} />
 
       <SectionList sections={sections} />
 
