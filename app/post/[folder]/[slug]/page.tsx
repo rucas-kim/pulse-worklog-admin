@@ -6,6 +6,7 @@ import { Folder, FOLDERS } from "@/lib/types";
 import { SectionList } from "@/components/SectionList";
 import { CategoryBadge, StatusBadge } from "@/components/Badge";
 import { PostEditor } from "@/components/PostEditor";
+import { PublishButton } from "@/components/PublishButton";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,11 @@ export default async function PostPage({
         >
           ← 목록
         </Link>
+        <PublishButton
+          folder={folder}
+          slug={slug}
+          alreadyPublished={folder === "published"}
+        />
       </div>
 
       <header className="mb-6">
