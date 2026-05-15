@@ -1,39 +1,42 @@
 import { listPosts, listAllCounts } from "@/lib/posts";
 import { Folder, FOLDERS } from "@/lib/types";
+import { filterAndSort, CategoryFilter, StatusVisibility, SortKey } from "@/lib/filter";
 import { TabBar } from "@/components/TabBar";
 import { PostCard } from "@/components/PostCard";
 import { EmptyState } from "@/components/EmptyState";
+import { FilterBar } from "@/components/FilterBar";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ folder?: string }>;
+  searchParams: Promise<{
+    folder?: string;
+    category?: string;
+    status?: string;
+    sort?: string;
+    q?: string;
+  }>;
 }) {
   const params = await searchParams;
   const folder: Folder = FOLDERS.includes(params.folder as Folder)
     ? (params.folder as Folder)
     : "drafts";
 
+  const defaultSort: SortKey =
+    folder === "queue" ? "planned" : folder === "published" ? "published_at" : "modified";
+
   const [posts, counts] = await Promise.all([
     listPosts(folder),
     listAllCounts(),
   ]);
 
-  // 발행 대기: 발행 예정일 asc / 발행 완료: 발행일 desc / 그 외: 수정일 desc
-  const sorted = [...posts].sort((a, b) => {
-    if (folder === "queue") {
-      const aDate = a.frontmatter.date_planned ?? "";
-      const bDate = b.frontmatter.date_planned ?? "";
-      return aDate.localeCompare(bDate);
-    }
-    if (folder === "published") {
-      const aDate = a.frontmatter.published_at ?? "";
-      const bDate = b.frontmatter.published_at ?? "";
-      return bDate.localeCompare(aDate);
-    }
-    return b.modifiedAt.getTime() - a.modifiedAt.getTime();
+  const filtered = filterAndSort(posts, {
+    category: (params.category ?? "all") as CategoryFilter,
+    statusVisibility: (params.status ?? "active") as StatusVisibility,
+    sort: (params.sort as SortKey) ?? defaultSort,
+    query: params.q ?? "",
   });
 
   return (
@@ -48,12 +51,19 @@ export default async function HomePage({
       </header>
 
       <TabBar current={folder} counts={counts} />
+      <FilterBar />
 
-      <div className="mt-6 space-y-3">
-        {sorted.length === 0 ? (
-          <EmptyState folder={folder} />
+      <div className="mt-4 space-y-3">
+        {filtered.length === 0 ? (
+          posts.length === 0 ? (
+            <EmptyState folder={folder} />
+          ) : (
+            <div className="py-12 text-center text-sm text-zinc-500">
+              🌱 검색·필터 결과가 없어요.
+            </div>
+          )
         ) : (
-          sorted.map((post) => <PostCard key={post.filepath} post={post} />)
+          filtered.map((post) => <PostCard key={post.filepath} post={post} />)
         )}
       </div>
     </main>
