@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Pretendard 한글 폰트 */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+@theme {
+  --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  /* Brand accent — 새싹 그린 */
+  --color-accent-50: #ecfdf5;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #18181b;
+  --color-muted: #71717a;
+  --color-card: #ffffff;
+  --color-border: #e4e4e7;
+  --color-hover: #fafafa;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-bg: #09090b;
+    --color-fg: #fafafa;
+    --color-muted: #a1a1aa;
+    --color-card: #18181b;
+    --color-border: #27272a;
+    --color-hover: #1f1f23;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Markdown 본문 기본 스타일 */
+.prose-content {
+  line-height: 1.7;
+  font-size: 1rem;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
+.prose-content p {
+  margin: 0 0 1rem 0;
+}
+
+.prose-content strong {
+  font-weight: 600;
+}
+
+.prose-content em {
+  font-style: italic;
+}
+
+.prose-content a {
+  color: var(--color-accent-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--color-hover);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+
+.prose-content blockquote {
+  border-left: 3px solid var(--color-accent-500);
+  padding-left: 1rem;
+  color: var(--color-muted);
+  margin: 1rem 0;
 }
