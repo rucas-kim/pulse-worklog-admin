@@ -7,8 +7,18 @@ import { SectionList } from "@/components/SectionList";
 import { CategoryBadge, StatusBadge } from "@/components/Badge";
 import { PostEditor } from "@/components/PostEditor";
 import { PublishButton } from "@/components/PublishButton";
+import { MoveButtons } from "@/components/MoveButtons";
+import { ResponseNoteEditor } from "@/components/ResponseNoteEditor";
 
 export const dynamic = "force-dynamic";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// 서버 컴포넌트 요청 시점 기준 — force-dynamic이라 요청마다 한 번 실행
+function daysSincePublished(publishedAt?: string): number {
+  if (!publishedAt) return 0;
+  return Math.floor((Date.now() - new Date(publishedAt).getTime()) / DAY_MS);
+}
 
 export default async function PostPage({
   params,
@@ -57,21 +67,27 @@ export default async function PostPage({
             })}{" "}
             수정
           </span>
-          {post.frontmatter.source_url && (
-            <>
-              <span className="text-zinc-400">·</span>
-              <a
-                href={post.frontmatter.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-emerald-600 dark:text-emerald-400 hover:underline"
-              >
-                원본 ↗
-              </a>
-            </>
-          )}
+          {post.frontmatter.source_url &&
+            (Array.isArray(post.frontmatter.source_url)
+              ? post.frontmatter.source_url
+              : [post.frontmatter.source_url]
+            ).map((url, i, arr) => (
+              <span key={url} className="inline-flex items-center gap-2">
+                <span className="text-zinc-400">·</span>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-600 dark:text-emerald-400 hover:underline"
+                >
+                  원본{arr.length > 1 ? ` ${i + 1}` : ""} ↗
+                </a>
+              </span>
+            ))}
         </div>
       </header>
+
+      <MoveButtons folder={folder} slug={slug} />
 
       <PostEditor folder={folder} slug={slug} initialBody={post.body} />
 
@@ -94,6 +110,14 @@ export default async function PostPage({
           )}
         </div>
       )}
+
+      <ResponseNoteEditor
+        folder={folder}
+        slug={slug}
+        publishedAt={post.frontmatter.published_at}
+        initialNote={post.frontmatter.response_note}
+        daysSincePublished={daysSincePublished(post.frontmatter.published_at)}
+      />
     </main>
   );
 }

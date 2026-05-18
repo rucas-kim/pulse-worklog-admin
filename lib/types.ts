@@ -30,8 +30,8 @@ export type Frontmatter = {
   date_created?: string;
   published_at?: string;
   permalink?: string;
-  source?: string;
-  source_url?: string;
+  source?: string | string[];
+  source_url?: string | string[];
   references?: string[];
   tags?: string[];
   chain_count?: number;

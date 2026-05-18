@@ -26,11 +26,12 @@ npm install
 ```
 
 ### 2. `.env.local` 작성
-```env
-CONTENT_DIR=/absolute/path/to/pulse-worklog
+```bash
+cp .env.example .env.local
+# 그리고 CONTENT_DIR을 본인 환경 절대 경로로 채우기
 ```
 
-콘텐츠 repo가 어디 있는지 알려주면 돼요. `pulse-worklog` repo의 절대 경로.
+`.env.example`의 한 줄을 채우면 돼요. `pulse-worklog` 콘텐츠 repo의 절대 경로.
 
 ### 3. 실행
 ```bash
