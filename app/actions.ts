@@ -13,6 +13,105 @@ const STATUS_BY_FOLDER: Record<Exclude<Folder, "published">, Status> = {
   queue: "queued",
 };
 
+const CATEGORY_LONG: Record<string, string> = {
+  A: "A (운영·콘텐츠 관찰)",
+  B: "B (피부 지식 학습 노트)",
+  C: "C (AI·바이브코딩)",
+  "자기계발": "자기계발 (기존 결)",
+};
+
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function buildFilename(
+  folder: Exclude<Folder, "published">,
+  slug: string,
+  datePlanned?: string
+): string {
+  if (folder === "queue" && datePlanned) return `${datePlanned}-${slug}.md`;
+  if (folder === "drafts") return `candidate-${slug}.md`;
+  return `${slug}.md`;
+}
+
+export type CreatePostInput = {
+  folder: Exclude<Folder, "published">;
+  slug: string;
+  category?: "A" | "B" | "C" | "자기계발";
+  format?: "instagram_caption" | "threads" | "carousel";
+  datePlanned?: string;
+  source?: string;
+  sourceUrl?: string;
+  body: string;
+};
+
+export async function createPost(
+  input: CreatePostInput
+): Promise<{ ok: boolean; error?: string; folder?: Folder; slug?: string }> {
+  try {
+    if (!SLUG_RE.test(input.slug)) {
+      return {
+        ok: false,
+        error: "slug는 소문자/숫자/하이픈만 사용해주세요 (예: my-new-finding)",
+      };
+    }
+    if (!input.body.trim()) {
+      return { ok: false, error: "본문은 비울 수 없어요" };
+    }
+    if (input.datePlanned && !DATE_RE.test(input.datePlanned)) {
+      return { ok: false, error: "발행 예정일은 YYYY-MM-DD 형식이어야 해요" };
+    }
+
+    const filename = buildFilename(input.folder, input.slug, input.datePlanned);
+    const folderDir = path.join(getContentDir(), FOLDER_MAP[input.folder]);
+    await fs.mkdir(folderDir, { recursive: true });
+    const targetPath = path.join(folderDir, filename);
+    ensureSafePath(targetPath);
+
+    try {
+      await fs.access(targetPath);
+      return {
+        ok: false,
+        error: `같은 이름의 파일이 이미 있어요: ${filename}`,
+      };
+    } catch {
+      // 없음 — 정상
+    }
+
+    const frontmatter: Frontmatter = {
+      status: STATUS_BY_FOLDER[input.folder],
+      account: "pulse.worklog",
+    };
+    if (input.category) {
+      frontmatter.category = CATEGORY_LONG[input.category] ?? input.category;
+    }
+    if (input.format) frontmatter.format = input.format;
+    if (input.datePlanned) frontmatter.date_planned = input.datePlanned;
+    if (input.source) frontmatter.source = input.source;
+    if (input.sourceUrl) frontmatter.source_url = input.sourceUrl;
+    frontmatter.checklist = {
+      role_fit: false,
+      source: false,
+      finding: false,
+      tone: false,
+    };
+
+    const content = matter.stringify(input.body, frontmatter);
+    await fs.writeFile(targetPath, content, "utf-8");
+
+    const newSlug = path.basename(filename, ".md");
+    revalidatePath("/");
+    revalidatePath("/calendar");
+    revalidatePath(`/post/${input.folder}/${newSlug}`);
+    return { ok: true, folder: input.folder, slug: newSlug };
+  } catch (e) {
+    console.error("createPost failed:", e);
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
 export async function savePostBody(
   folder: Folder,
   slug: string,
