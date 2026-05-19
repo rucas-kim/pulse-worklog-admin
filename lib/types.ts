@@ -44,6 +44,8 @@ export type Frontmatter = {
     finding?: boolean;
     tone?: boolean;
   };
+  // 자가 추천도 1-5 (정성). PostCard에 별로 표시. 없는 글은 빈 채.
+  score?: number;
   [key: string]: unknown;
 };
 

@@ -23,6 +23,7 @@ function formatRelativeDate(date: Date): string {
 
 export function PostCard({ post }: { post: Post }) {
   const status = post.frontmatter.status;
+  const score = normalizeScore(post.frontmatter.score);
 
   return (
     <Link
@@ -34,6 +35,7 @@ export function PostCard({ post }: { post: Post }) {
           {post.title}
         </h2>
         <div className="flex items-center gap-1.5 shrink-0">
+          {score !== null && <ScoreStars score={score} />}
           <CategoryBadge category={post.category} />
         </div>
       </div>
@@ -75,4 +77,26 @@ function labelFormat(format: string): string {
     default:
       return format;
   }
+}
+
+// 1-5 사이로 안전 변환. 그 밖의 값(0, 6, "abc", null)은 null 반환 → 비표시
+export function normalizeScore(v: unknown): number | null {
+  if (typeof v !== "number" || !Number.isFinite(v)) return null;
+  if (v < 1 || v > 5) return null;
+  return Math.round(v);
+}
+
+function ScoreStars({ score }: { score: number }) {
+  return (
+    <span
+      className="inline-flex items-center text-amber-500"
+      title={`자가 추천도 ${score}/5`}
+      aria-label={`자가 추천도 ${score}점, 5점 만점`}
+    >
+      {"★".repeat(score)}
+      <span className="text-zinc-300 dark:text-zinc-700">
+        {"★".repeat(5 - score)}
+      </span>
+    </span>
+  );
 }
