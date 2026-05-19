@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+/* Pretendard 웹폰트는 app/layout.tsx의 <link>로 로드 — Tailwind v4가 PostCSS 단계에서 자기 콘텐츠를 맨 위에 주입하기 때문에 CSS 내 외부 @import는 항상 위반으로 잡힘 */
 
 
 @theme {
