@@ -1,14 +1,5 @@
 import { Post } from "./types";
-
-// gray-matter(js-yaml)가 YAML 날짜를 Date로 변환할 수 있어서 string/Date 모두 ms로 정규화
-function toMillis(v: unknown): number {
-  if (typeof v === "string") {
-    const m = /^(\d{4}-\d{2}-\d{2})/.exec(v);
-    return m ? new Date(m[1]).getTime() : Number.POSITIVE_INFINITY;
-  }
-  if (v instanceof Date && !isNaN(v.getTime())) return v.getTime();
-  return Number.POSITIVE_INFINITY;
-}
+import { toMillis } from "./dates";
 
 export type SortKey = "modified" | "created" | "planned" | "published_at";
 export type CategoryFilter = "all" | "A" | "B" | "C" | "자기계발" | "기타";

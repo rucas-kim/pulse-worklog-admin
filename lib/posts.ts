@@ -20,7 +20,9 @@ export function getContentDir(): string {
 export function ensureSafePath(filepath: string): void {
   const resolved = path.resolve(filepath);
   const base = path.resolve(getContentDir());
-  if (!resolved.startsWith(base)) {
+  // base와 정확히 같거나 그 하위만 허용. 단순 startsWith는 `/tmp/x-sibling`을
+  // `/tmp/x`의 하위로 오인하므로 path.sep까지 비교해야 안전.
+  if (resolved !== base && !resolved.startsWith(base + path.sep)) {
     throw new Error("Unsafe path detected — outside CONTENT_DIR");
   }
 }

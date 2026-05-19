@@ -1,91 +1,18 @@
 import Link from "next/link";
 import { listPosts } from "@/lib/posts";
 import { Post } from "@/lib/types";
+import {
+  buildGrid,
+  fmtMonth,
+  parseMonth,
+  shiftMonth,
+  toIsoDay,
+  todayIsoKst,
+} from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
 type CellItem = { post: Post; kind: "queue" | "published" };
-type DayCell = {
-  date: Date;
-  iso: string;
-  inMonth: boolean;
-  isToday: boolean;
-};
-
-function isoDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-// gray-matter(js-yaml)가 따옴표 없는 YAML 날짜를 자동으로 Date(UTC 자정)로 변환함.
-// 로컬 타임존에서 getDate를 호출하면 머신마다 결과가 달라지므로 KST(+9h) 기준 UTC 메서드로 읽음.
-function toIsoDay(v: unknown): string | null {
-  if (typeof v === "string") {
-    const m = /^(\d{4}-\d{2}-\d{2})/.exec(v);
-    return m ? m[1] : null;
-  }
-  if (v instanceof Date && !isNaN(v.getTime())) {
-    const kst = new Date(v.getTime() + 9 * 60 * 60 * 1000);
-    const y = kst.getUTCFullYear();
-    const m = String(kst.getUTCMonth() + 1).padStart(2, "0");
-    const d = String(kst.getUTCDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-  return null;
-}
-
-function todayIsoKst(): string {
-  // 사용자 머신이 어디든 KST 기준 오늘 — 디마프 운영은 KST
-  const now = new Date();
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
-  return isoDate(new Date(utcMs + 9 * 60 * 60 * 1000));
-}
-
-function parseMonth(s?: string): { year: number; month: number } {
-  if (s && /^\d{4}-\d{2}$/.test(s)) {
-    const [y, m] = s.split("-").map(Number);
-    if (y >= 2000 && y <= 2100 && m >= 1 && m <= 12) {
-      return { year: y, month: m };
-    }
-  }
-  const t = todayIsoKst().split("-");
-  return { year: Number(t[0]), month: Number(t[1]) };
-}
-
-function fmtMonth(year: number, month: number): string {
-  return `${year}-${String(month).padStart(2, "0")}`;
-}
-
-function shiftMonth(year: number, month: number, delta: number) {
-  const d = new Date(year, month - 1 + delta, 1);
-  return { year: d.getFullYear(), month: d.getMonth() + 1 };
-}
-
-function buildGrid(year: number, month: number, today: string): DayCell[] {
-  const first = new Date(year, month - 1, 1);
-  const startDay = first.getDay();
-  const cells: DayCell[] = [];
-
-  for (let i = 0; i < startDay; i++) {
-    const d = new Date(year, month - 1, -startDay + i + 1);
-    cells.push({ date: d, iso: isoDate(d), inMonth: false, isToday: false });
-  }
-  const last = new Date(year, month, 0).getDate();
-  for (let dd = 1; dd <= last; dd++) {
-    const dt = new Date(year, month - 1, dd);
-    const iso = isoDate(dt);
-    cells.push({ date: dt, iso, inMonth: true, isToday: iso === today });
-  }
-  while (cells.length % 7 !== 0) {
-    const prev = cells[cells.length - 1].date;
-    const next = new Date(prev);
-    next.setDate(next.getDate() + 1);
-    cells.push({ date: next, iso: isoDate(next), inMonth: false, isToday: false });
-  }
-  return cells;
-}
 
 export default async function CalendarPage({
   searchParams,
