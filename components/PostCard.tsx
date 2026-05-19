@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Post } from "@/lib/types";
 import { CategoryBadge, StatusBadge } from "./Badge";
+import { normalizeOverall, totalScore } from "@/lib/score";
 
 function formatRelativeDate(date: Date): string {
   const now = Date.now();
@@ -23,7 +24,8 @@ function formatRelativeDate(date: Date): string {
 
 export function PostCard({ post }: { post: Post }) {
   const status = post.frontmatter.status;
-  const score = normalizeScore(post.frontmatter.score);
+  const overall = normalizeOverall(post.frontmatter.score);
+  const total = totalScore(post.frontmatter.score);
 
   return (
     <Link
@@ -35,7 +37,7 @@ export function PostCard({ post }: { post: Post }) {
           {post.title}
         </h2>
         <div className="flex items-center gap-1.5 shrink-0">
-          {score !== null && <ScoreStars score={score} />}
+          {overall !== null && <ScoreStars score={overall} total={total} />}
           <CategoryBadge category={post.category} />
         </div>
       </div>
@@ -79,24 +81,32 @@ function labelFormat(format: string): string {
   }
 }
 
-// 1-5 사이로 안전 변환. 그 밖의 값(0, 6, "abc", null)은 null 반환 → 비표시
-export function normalizeScore(v: unknown): number | null {
-  if (typeof v !== "number" || !Number.isFinite(v)) return null;
-  if (v < 1 || v > 5) return null;
-  return Math.round(v);
-}
-
-function ScoreStars({ score }: { score: number }) {
+function ScoreStars({
+  score,
+  total,
+}: {
+  score: number;
+  total: { total: number; max: number } | null;
+}) {
+  const titleParts = [`자가 추천도 ${score}/5`];
+  if (total) titleParts.push(`총점 ${total.total}/${total.max}`);
   return (
     <span
-      className="inline-flex items-center text-amber-500"
-      title={`자가 추천도 ${score}/5`}
-      aria-label={`자가 추천도 ${score}점, 5점 만점`}
+      className="inline-flex items-center gap-1 text-xs"
+      title={titleParts.join(" · ")}
+      aria-label={titleParts.join(", ")}
     >
-      {"★".repeat(score)}
-      <span className="text-zinc-300 dark:text-zinc-700">
-        {"★".repeat(5 - score)}
+      <span className="text-amber-500">
+        {"★".repeat(score)}
+        <span className="text-zinc-300 dark:text-zinc-700">
+          {"★".repeat(5 - score)}
+        </span>
       </span>
+      {total && (
+        <span className="font-mono text-zinc-500 dark:text-zinc-400">
+          {total.total}/{total.max}
+        </span>
+      )}
     </span>
   );
 }

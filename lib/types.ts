@@ -44,8 +44,16 @@ export type Frontmatter = {
     finding?: boolean;
     tone?: boolean;
   };
-  // 자가 추천도 1-5 (정성). PostCard에 별로 표시. 없는 글은 빈 채.
-  score?: number;
+  // 자가 추천도 — 객체로 구조화. overall은 종합 별점(1-5),
+  // 5축(data/finding/role_fit/tone/readiness)은 선택. 정의된 축만 총점에 합산.
+  score?: {
+    overall?: number;
+    data?: number;
+    finding?: number;
+    role_fit?: number;
+    tone?: number;
+    readiness?: number;
+  };
   [key: string]: unknown;
 };
 

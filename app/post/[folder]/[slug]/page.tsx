@@ -9,6 +9,7 @@ import { PostEditor } from "@/components/PostEditor";
 import { PublishButton } from "@/components/PublishButton";
 import { MoveButtons } from "@/components/MoveButtons";
 import { ResponseNoteEditor } from "@/components/ResponseNoteEditor";
+import { ScoreBreakdown } from "@/components/ScoreBreakdown";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +89,8 @@ export default async function PostPage({
       </header>
 
       <MoveButtons folder={folder} slug={slug} />
+
+      <ScoreBreakdown score={post.frontmatter.score} />
 
       <PostEditor folder={folder} slug={slug} initialBody={post.body} />
 
